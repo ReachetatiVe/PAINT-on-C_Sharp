@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace MyPaint
-{
-    internal static class Program
-    {
+namespace MyPaint {
+
+    internal static class Program {
+
         /// <summary>
         /// Главная точка входа для приложения.
         /// </summary>
         [STAThread]
-        private static void Main()
-        {
+        private static void Main() {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FormMyPaint());

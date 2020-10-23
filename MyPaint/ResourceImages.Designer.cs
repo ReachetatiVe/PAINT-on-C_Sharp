@@ -63,9 +63,39 @@ namespace MyPaint {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap circ {
+            get {
+                object obj = ResourceManager.GetObject("circ", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap rect {
             get {
                 object obj = ResourceManager.GetObject("rect", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap revTri {
+            get {
+                object obj = ResourceManager.GetObject("revTri", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap tri {
+            get {
+                object obj = ResourceManager.GetObject("tri", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

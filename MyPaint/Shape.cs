@@ -1,50 +1,53 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
-namespace MyPaint
-{
-    internal class Shape
-    {
-        public int x0 { get; set; }
-        public int y0 { get; set; }
-        public int width { get; set; }
-        public int height { get; set; }
+namespace MyPaint {
 
-        public int borderSize { get; set; }
-        public Color Fill { get; set; }
-        public Color Line { get; set; }
-        public Graphics graphics { get; set; }
+    [Serializable]
+    internal abstract class Shape {
+        public int BorderSize { get; set; }
+        public Color FillColor { get; set; }
+        public Color BorderColor { get; set; }
 
-        public Shape(int x0, int y0, int width, int height, Graphics graphics, int borderSize, Color Line)
-        {
-            this.x0 = x0;
-            this.y0 = y0;
-            this.width = width;
-            this.height = height;
-            this.graphics = graphics;
-            this.borderSize = borderSize;
-            this.Line = Line;
+        protected Point [] points;
+
+        public Shape(int borderSize, Color borderColor) {
+            BorderSize = borderSize;
+            BorderColor = borderColor;
         }
 
-        virtual public Graphics Draw()
-        {
+        public virtual Graphics Draw(Graphics graphics) {
+            Pen p = new Pen(BorderColor, BorderSize);
+            graphics.DrawPolygon(p, points);
             return graphics;
         }
 
-        virtual public double Square()
-        {
+        public virtual double Square() {
             return 0;
         }
 
-        public bool Touch(Point p)
-        {
-            if (p.X > x0 && p.Y > y0 && p.X < x0 + width && p.Y < height + y0)
-                return true;
-            else
-                return false;
+        public virtual bool Touch(Point pointForCheck) {
+            bool c = false;
+
+            //#Алгоритм(сложный(быстрый))
+
+            for (int i = 0, j = points.Length - 1; i < points.Length; j = i++) {
+                if (
+                    (
+                        ((points [i].Y <= pointForCheck.Y) && (pointForCheck.Y < points [j].Y)) || ((points [j].Y <= pointForCheck.Y) && (pointForCheck.Y < points [i].Y))
+                    ) &&
+                  (
+                        ((points [j].Y - points [i].Y) != 0) && (pointForCheck.X > ((points [j].X - points [i].X) * (pointForCheck.Y - points [i].Y) / (points [j].Y - points [i].Y) + points [i].X)))
+                  )
+                    c = !c;
+            }
+            return c;
         }
 
-        public virtual void DoFill(Color c)
-        {
+        public virtual void DoFill(Graphics graphics) {
+            graphics.FillPolygon(new SolidBrush(FillColor), points);
+            Pen p = new Pen(BorderColor, BorderSize);
+            graphics.DrawPolygon(p, points);
         }
     }
 }

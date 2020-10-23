@@ -1,29 +1,27 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 
-namespace MyPaint
-{
-    internal class Rect : Shape
-    {
-        public Rect(int x0, int y0, int width, int height, Graphics graphics, int borderSize, Color Line) : base(x0, y0, width, height, graphics, borderSize, Line)
-        {
+namespace MyPaint {
+
+    [Serializable]
+    internal class Rect : Shape {
+
+        public Rect(Point startPoint, Point endPoint, int borderSize, Color borderColor) : base(borderSize, borderColor) {
+            points = new Point [4];
+
+            //pointsBorder[0] = startPoint; //левая верхняя
+            //pointsBorder[1] = new Point(startPoint.X, endPoint.Y); //левая нижняя
+            //pointsBorder[2] = new Point(endPoint.X, startPoint.Y); //правая верхняя
+            //pointsBorder[3] = endPoint; //правая нижняя
+
+            points [0] = startPoint; //левая верхняя
+            points [1] = new Point(endPoint.X, startPoint.Y); //правая верхняя
+            points [2] = endPoint; // правая нижняя
+            points [3] = new Point(startPoint.X, endPoint.Y); //левая нижняя
         }
 
-        public override Graphics Draw()
-        {
-            //grPath.FillMode();
-            Pen p = new Pen(Line, borderSize);
-            graphics.DrawRectangle(p, new Rectangle(x0, y0, width, height));
-            return graphics;
-        }
-
-        public override double Square()
-        {
-            return width * height;
-        }
-
-        public override void DoFill(Color c)
-        {
-            graphics.FillRectangle(new SolidBrush(c), new Rectangle(x0 + borderSize - 1, y0 + borderSize, width - borderSize - 1, height - borderSize - 1));
+        public override double Square() {
+            return 0;
         }
     }
 }

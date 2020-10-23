@@ -117,7 +117,31 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="buttonDrawRectangle.BackgroundImage" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAHgAAAB4CAIAAAC2BqGFAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAS
+        dAAAEnQB3mYfeAAAApNJREFUeF7t0CFyHVAQxEDf/9I/RMBEyaT8aonVdIesvj45UegjhT5S6COFPlLo
+        I4U+UugjhT5S6COFPvK30F/5H1QThX6GaqLQz1BNFPoZqolCP0M1UehnqCYK/QzVRKGfoZoo9DNUE4V+
+        hmriR6HZ/Q787NiJQq/42bEThV7xs2MnCr3iZ8dOFHrFz46dKPSKnx07UegVPzt2otArfnbsRKFX/OzY
+        iUKv+NmxE4Ve8bNjJwq94mfHThR6xc+OnSj0ip8dO1HoFT87dqLQK3527EShV/zs2IlCr/jZsROFXvGz
+        YycKveJnx04UesXPjp0o9IqfHTtR6BU/O3ai0Ct+duxEoVf87NiJQq/42bEThV7xs2MnCr3iZ8dOFHrF
+        z46dKPSKnx07UegVPzt2otArfnbsRKFX/OzYiUKv+NmxE4Ve8bNjJwq94mfHThR6xc+OnSj0ip8dO1Ho
+        FT87dqLQK3527EShV/zs2IlCr/jZsROFXvGzYycKveJnx04UesXPjp0o9IqfHTtR6BU/O3ai0Ct+duxE
+        oVf87NiJQq/42bEThV7xs2MnCr3iZ8dOFHrFz46dKPSKnx07UegVPzt2otArfnbsRKFX/OzYiUKv+Nmx
+        E4Ve8bNjJwq94mfHThR6xc+OnSj0ip8dO1HoFT87dqLQK3527EShV/zs2IlCr/jZsROFXvGzYycKveJn
+        x04UesXPjp0o9IqfHTtR6BU/O3ai0Ct+duxEoVf87NiJQq/42bETPwqd76gmCv0M1UShn6GaKPQzVBOF
+        foZqotDPUE0U+hmqiUI/QzVR6GeoJgr9DNVEoZ+hmij0M1QT/zjnlUIfKfSRQh8p9JFCHyn0kUIfKfSR
+        Qh8p9JFCHyn0ic/nDxR6LZQh4ySYAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <metadata name="menuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>161, 17</value>
+  </metadata>
   <metadata name="colorDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
+  </metadata>
+  <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>296, 17</value>
   </metadata>
 </root>
