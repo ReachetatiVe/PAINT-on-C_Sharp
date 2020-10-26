@@ -11,6 +11,7 @@ namespace MyPaint {
     internal class Collection {
         public Bitmap bitmap;
         public List<Shape> shapes;
+        public List<int> indexesOfSelectedShapes;
 
         public Shape this [int index] {
             get {
@@ -23,6 +24,7 @@ namespace MyPaint {
 
         public Collection() {
             shapes = new List<Shape>();
+            indexesOfSelectedShapes = new List<int>();
         }
 
         public void Add(Shape shape) {
@@ -39,6 +41,11 @@ namespace MyPaint {
             foreach (Shape shape in shapes) {
                 shape.Draw(gr);
                 shape.DoFill(gr);
+            }
+
+            //indexesOfSelectedShapes.Sort(); //пусть будет
+            for (int i = indexesOfSelectedShapes.Count-1; i>=0; i--) {
+                shapes [indexesOfSelectedShapes[i]].DrawRectAroundShape(gr);
             }
         }
 

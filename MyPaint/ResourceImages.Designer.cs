@@ -73,6 +73,16 @@ namespace MyPaint {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap click {
+            get {
+                object obj = ResourceManager.GetObject("click", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap rect {
             get {
                 object obj = ResourceManager.GetObject("rect", resourceCulture);
