@@ -103,8 +103,6 @@ namespace MyPaint {
                                 });
                                 threadForPointer.Start();
                             }
-
-                            break;
                         }
                         break;
 
