@@ -45,7 +45,7 @@ namespace MyPaint {
 
             //indexesOfSelectedShapes.Sort(); //пусть будет
             for (int i = indexesOfSelectedShapes.Count-1; i>=0; i--) {
-                shapes [indexesOfSelectedShapes[i]].DrawRectAroundShape(gr);
+                shapes [indexesOfSelectedShapes[i]].DrawRectangleAroundShape(gr);
             }
         }
 

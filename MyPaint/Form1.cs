@@ -20,13 +20,16 @@ namespace MyPaint {
         private Graphics graphics;
         private Color color;
         private Module module;
-        private Point startMousePoint;
+        private PointF startMousePoint;
         private Collection collection;
-        private Point currentPoint;
+        private PointF currentPoint;
+
         private Thread threadForShowInfo;
         private Thread threadForShape;
         private Thread threadForPointer;
         private Shape.TypeOfTouch typeOfTouch;
+        int resizingIndex = -1;
+
         private bool shapeThreadIsRunning = false;
         private byte borderSize;
         private const byte sleepTime = 16;
@@ -72,7 +75,7 @@ namespace MyPaint {
                     case Module.pointer:
                         for (int i = collection.shapes.Count - 1; i >= 0; i--) {
                             bool isSelected = false;
-                            foreach (int index in collection.indexesOfSelectedShapes) {
+                            foreach (int index in collection.indexesOfSelectedShapes) { //узнаем, помечена ли конкретная фигура
                                 if (index == i) {
                                     isSelected = true;
                                     break;
@@ -84,24 +87,31 @@ namespace MyPaint {
                                     collection.indexesOfSelectedShapes.Add(i);
                                     collection.ReDraw(graphics);
                                     pictureBox1.Image = picture;
+
                                 }
+
                             }
                             else {
                                 typeOfTouch = collection [i].CheckTouchSelectionBorder(startMousePoint);
-                                threadForPointer = new Thread(() =>
-                                {
-                                    while (typeOfTouch != Shape.TypeOfTouch.NePopal) {
-                                        collection [i].ReSize(typeOfTouch, new Point(startMousePoint.X - currentPoint.X, startMousePoint.Y - currentPoint.Y));
+                                if (typeOfTouch != Shape.TypeOfTouch.NePopal) {
+                                    resizingIndex = i;
+                                    threadForPointer = new Thread(() =>
+                                    {
+                                        while (resizingIndex != -1) {
+                                            collection [resizingIndex].ReSize(typeOfTouch, new PointF(startMousePoint.X - currentPoint.X, startMousePoint.Y - currentPoint.Y));
 
-                                        startMousePoint = currentPoint;
+                                            startMousePoint = currentPoint;
 
-                                        collection.ReDraw(graphics);
-                                        pictureBox1.Image = picture;
+                                            collection.ReDraw(graphics);
+                                            pictureBox1.Image = picture;
 
-                                        Thread.Sleep(sleepTime);
-                                    }
-                                });
-                                threadForPointer.Start();
+                                            Thread.Sleep(sleepTime);
+                                        }
+                                    });
+                                    threadForPointer.Start();
+                                    break;
+
+                                }
                             }
                         }
                         break;
@@ -114,8 +124,8 @@ namespace MyPaint {
                         threadForShape = new Thread(() =>
                         {
                             while (shapeThreadIsRunning) {
-                                Point startPoint = new Point();
-                                Point endPoint = new Point();
+                                PointF startPoint = new PointF();
+                                PointF endPoint = new PointF();
 
                                 collection.RemoveLastElement();
 
@@ -162,6 +172,7 @@ namespace MyPaint {
             if (e.Button == MouseButtons.Left) {
                 shapeThreadIsRunning = false;
                 typeOfTouch = Shape.TypeOfTouch.NePopal;
+                resizingIndex = -1;
             }
         }
 

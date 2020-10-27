@@ -11,8 +11,9 @@ namespace MyPaint {
         public Color FillColor { get; set; }
         public Color BorderColor { get; set; }
 
-        protected Rectangle selectRectangle;
-        protected Point [] points;
+        protected RectangleF selectRectangle;
+        protected PointF [] points;
+
         public Shape(int borderSize, Color borderColor) {
             BorderSize = borderSize;
             BorderColor = borderColor;
@@ -28,7 +29,7 @@ namespace MyPaint {
             return 0;
         }
 
-        public virtual bool Touch(Point pointForCheck) {
+        public virtual bool Touch(PointF pointForCheck) {
             bool c = false;
 
             //#Алгоритм(сложный(быстрый))
@@ -46,12 +47,11 @@ namespace MyPaint {
             return c;
         }
 
-        protected bool CheckCoordinates(int target, int b) {
+        protected bool CheckCoordinates(float target, float b) {
             return target <= b + errorSize && target >= b - errorSize;
         }
 
-
-        public virtual TypeOfTouch CheckTouchSelectionBorder(Point pointForCheck) {
+        public virtual TypeOfTouch CheckTouchSelectionBorder(PointF pointForCheck) {
             if (CheckCoordinates(pointForCheck.X, selectRectangle.Left)) {
                 if (CheckCoordinates(pointForCheck.Y, selectRectangle.Top))
                     return TypeOfTouch.LeftTop;
@@ -59,7 +59,6 @@ namespace MyPaint {
                     return TypeOfTouch.LeftBottom;
                 return TypeOfTouch.Left;
             }
-
             else if (CheckCoordinates(pointForCheck.X, selectRectangle.Right)) {
                 if (CheckCoordinates(pointForCheck.Y, selectRectangle.Top))
                     return TypeOfTouch.RightTop;
@@ -67,85 +66,89 @@ namespace MyPaint {
                     return TypeOfTouch.RightBottom;
                 return TypeOfTouch.Right;
             }
-
             else if (CheckCoordinates(pointForCheck.Y, selectRectangle.Bottom))
                 return TypeOfTouch.Bottom;
-
             else if (CheckCoordinates(pointForCheck.Y, selectRectangle.Top))
                 return TypeOfTouch.Top;
-
             else
                 return TypeOfTouch.NePopal;
         }
 
-        public virtual void DrawRectAroundShape(Graphics graphics) {
+        public virtual void DrawRectangleAroundShape(Graphics graphics) {
             CreateSelectedRect();
 
             Pen pen = new Pen(Color.White);
             pen.DashStyle = DashStyle.Solid;
             pen.Width = 1.5f;
-            graphics.DrawRectangle(pen, selectRectangle);
+            graphics.DrawRectangle(pen, selectRectangle.Left, selectRectangle.Top, selectRectangle.Width, selectRectangle.Height);
             pen.Color = Color.Blue;
             pen.DashPattern = new float [] { 4, 4 };
-            graphics.DrawRectangle(pen, selectRectangle);
-
+            graphics.DrawRectangle(pen, selectRectangle.Left, selectRectangle.Top, selectRectangle.Width, selectRectangle.Height);
         }
 
-        private void CreateSelectedRect() {
+        protected void CreateSelectedRect() {
             if (selectRectangle.Width == 0 && selectRectangle.Height == 0) {
-                int xRight = points [0].X;
-                int xLeft = points [0].X;
-                int yTop = points [0].Y;
-                int yBottom = points [0].Y;
+                float xRight = points [0].X;
+                float xLeft = points [0].X;
+                float yTop = points [0].Y;
+                float yBottom = points [0].Y;
 
-                foreach (Point point in points) {
-                    xLeft = Math.Min(point.X, xLeft);
-                    xRight = Math.Max(point.X, xRight);
-                    yTop = Math.Min(point.Y, yTop);
-                    yBottom = Math.Max(point.Y, yBottom);
+                foreach (PointF PointF in points) {
+                    xLeft = Math.Min(PointF.X, xLeft);
+                    xRight = Math.Max(PointF.X, xRight);
+                    yTop = Math.Min(PointF.Y, yTop);
+                    yBottom = Math.Max(PointF.Y, yBottom);
                 }
 
-                selectRectangle = new Rectangle(xLeft, yTop, xRight - xLeft, yBottom - yTop);
+                selectRectangle = new RectangleF(xLeft, yTop, xRight - xLeft, yBottom - yTop);
             }
         }
+
         public virtual void DoFill(Graphics graphics) {
             graphics.FillPolygon(new SolidBrush(FillColor), points);
             Pen p = new Pen(BorderColor, BorderSize);
             graphics.DrawPolygon(p, points);
         }
 
-        public virtual void ReSize(TypeOfTouch typeOfTouch, Point deltaPoint) {
-            int unchangeableX = -1;
-            int unchangeableY = -1;
+        public virtual void ReSize(TypeOfTouch typeOfTouch, PointF deltaPoint) {
+            float unchangeableX = -1;
+            float unchangeableY = -1;
             switch (typeOfTouch) {
                 case TypeOfTouch.Bottom:
                     unchangeableX = -1;
                     unchangeableY = selectRectangle.Top;
                     break;
+
                 case TypeOfTouch.Left:
                     unchangeableX = selectRectangle.Right;
                     unchangeableY = -1;
                     break;
+
                 case TypeOfTouch.LeftBottom:
                     unchangeableX = selectRectangle.Right;
                     unchangeableY = selectRectangle.Top;
                     break;
+
                 case TypeOfTouch.LeftTop:
                     unchangeableX = selectRectangle.Right;
                     unchangeableY = selectRectangle.Bottom;
                     break;
+
                 case TypeOfTouch.Right:
                     unchangeableX = selectRectangle.Left;
                     unchangeableY = -1;
                     break;
+
                 case TypeOfTouch.RightBottom:
                     unchangeableX = selectRectangle.Left;
                     unchangeableY = selectRectangle.Top;
                     break;
+
                 case TypeOfTouch.RightTop:
                     unchangeableX = selectRectangle.Left;
                     unchangeableY = selectRectangle.Bottom;
                     break;
+
                 case TypeOfTouch.Top:
                     unchangeableX = -1;
                     unchangeableY = selectRectangle.Bottom;
@@ -153,16 +156,32 @@ namespace MyPaint {
             }
             if (typeOfTouch != TypeOfTouch.NePopal) {
                 CreateSelectedRect();
-                for (int i = 0; i < points.Length; i++) {
-                    int tmpX = points [i].X;
-                    int tmpY = points [i].Y;
+                //PointF [] tmpPoints = (PointF[])points.Clone();
+                bool flagX = false;
+                bool flagY = false;
+
+                for (int i = 0; i < points.Length && !flagX && !flagY; i++) {
+                    float tmpX = points [i].X;
+                    float tmpY = points [i].Y;
                     //проверить на 0 (не забыдь)
-                    if (unchangeableX != -1)
+                    if (unchangeableX != -1) {
                         tmpX -= deltaPoint.X * (Math.Abs(unchangeableX - tmpX) / selectRectangle.Width);
+                    }
                     if (unchangeableY != -1)
                         tmpY -= deltaPoint.Y * (Math.Abs(unchangeableY - tmpY) / selectRectangle.Height);
-                    points [i] = new Point(tmpX, tmpY);
+                    points [i] = new PointF(tmpX, tmpY);
+
+                    //if (tmpPoints [i].X > (selectRectangle.Right + 1) && typeOfTouch != TypeOfTouch.Right
+                    //    || tmpPoints [i].X < (selectRectangle.Left - 1) && typeOfTouch != TypeOfTouch.Left)
+                    //    flagX = true;
+                    //if (tmpPoints [i].Y > (selectRectangle.Top + 1) && typeOfTouch != TypeOfTouch.Top
+                    //    || tmpPoints [i].Y < (selectRectangle.Bottom - 1) && typeOfTouch != TypeOfTouch.Bottom)
+                    //    flagY = true;
                 }
+
+                //for (int i = 0; i < points.Length; i++)
+                //    points [i] = new PointF(flagX ? points [i].X : tmpPoints [i].X, flagY ? points [i].Y : tmpPoints [i].Y);
+
                 selectRectangle.Width = 0;
                 selectRectangle.Height = 0;
             }
