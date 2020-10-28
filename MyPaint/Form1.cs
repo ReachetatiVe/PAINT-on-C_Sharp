@@ -87,7 +87,6 @@ namespace MyPaint {
                                     collection.indexesOfSelectedShapes.Add(i);
                                     collection.ReDraw(graphics);
                                     pictureBox1.Image = picture;
-
                                 }
 
                             }
@@ -110,7 +109,6 @@ namespace MyPaint {
                                     });
                                     threadForPointer.Start();
                                     break;
-
                                 }
                             }
                         }
