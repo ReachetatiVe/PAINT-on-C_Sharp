@@ -11,7 +11,8 @@ namespace MyPaint {
         circle,
         triangle,
         revTriangle,
-        vedro
+        vedro,
+        pointer
     }
 
     public partial class FormMyPaint : Form {
@@ -19,11 +20,16 @@ namespace MyPaint {
         private Graphics graphics;
         private Color color;
         private Module module;
-        private Point startMousePoint;
+        private PointF startMousePoint;
         private Collection collection;
-        private Point currentPoint;
+        private PointF currentPoint;
+
         private Thread threadForShowInfo;
         private Thread threadForShape;
+        private Thread threadForPointer;
+        private Shape.TypeOfTouch typeOfTouch;
+        int resizingIndex = -1;
+
         private bool shapeThreadIsRunning = false;
         private byte borderSize;
         private const byte sleepTime = 16;
@@ -40,79 +46,132 @@ namespace MyPaint {
                 button.Enabled = true;
         }
 
+        private void ResetSelect() {
+            collection.indexesOfSelectedShapes.Clear();
+            collection.ReDraw(graphics);
+        }
+
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e) {
             currentPoint = e.Location;
         }
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e) {
             if (e.Button == MouseButtons.Left) {
-                shapeThreadIsRunning = true;
-
                 startMousePoint = e.Location;
                 currentPoint = e.Location;
 
-                if (module != Module.vedro) {
-                    collection.Add(new Rect(currentPoint, currentPoint, 0, Color.Black)); //заглушка
+                switch (module) {
+                    case Module.vedro:
+                        for (int i = collection.shapes.Count - 1; i >= 0; i--) {
+                            if (collection [i].Touch(currentPoint)) {
+                                collection [i].FillColor = color;
+                                break;
+                            }
+                        }
+                        collection.ReDraw(graphics);
+                        pictureBox1.Image = picture;
+                        break;
 
-                    threadForShape = new Thread(() =>
-                    {
-                        while (shapeThreadIsRunning) {
-                            Point startPoint = new Point();
-                            Point endPoint = new Point();
-
-                            collection.RemoveLastElement();
-
-                            startPoint.X = Math.Min(startMousePoint.X, currentPoint.X);
-                            startPoint.Y = Math.Min(startMousePoint.Y, currentPoint.Y);
-                            endPoint.X = startPoint.X + Math.Abs(currentPoint.X - startMousePoint.X);
-                            endPoint.Y = startPoint.Y + Math.Abs(currentPoint.Y - startMousePoint.Y);
-
-                            ShapeFactory shapeFactory = null;
-                            switch (module) {
-                                case Module.rect:
-                                    shapeFactory = new RectFactory();
+                    case Module.pointer:
+                        for (int i = collection.shapes.Count - 1; i >= 0; i--) {
+                            bool isSelected = false;
+                            foreach (int index in collection.indexesOfSelectedShapes) { //узнаем, помечена ли конкретная фигура
+                                if (index == i) {
+                                    isSelected = true;
                                     break;
-
-                                case Module.circle:
-                                    shapeFactory = new CircleFactory();
-                                    break;
-
-                                case Module.triangle:
-                                    shapeFactory = new TriangleFactory();
-                                    break;
-
-                                case Module.revTriangle:
-                                    shapeFactory = new RevTriangleFactory();
-                                    break;
+                                }
                             }
 
-                            collection.Add(shapeFactory.CreateShape(startPoint, endPoint, borderSize, color));
+                            if (!isSelected) {
+                                if (collection [i].Touch(currentPoint)) {
+                                    collection.indexesOfSelectedShapes.Add(i);
+                                    collection.ReDraw(graphics);
+                                    pictureBox1.Image = picture;
+                                }
 
-                            collection.ReDraw(graphics);
-                            pictureBox1.Image = picture;
+                            }
+                            else {
+                                typeOfTouch = collection [i].CheckTouchSelectionBorder(startMousePoint);
+                                if (typeOfTouch != Shape.TypeOfTouch.NePopal) {
+                                    resizingIndex = i;
+                                    threadForPointer = new Thread(() =>
+                                    {
+                                        while (resizingIndex != -1) {
+                                            collection [resizingIndex].ReSize(typeOfTouch, new PointF(startMousePoint.X - currentPoint.X, startMousePoint.Y - currentPoint.Y));
 
-                            Thread.Sleep(sleepTime);
+                                            startMousePoint = currentPoint;
+
+                                            collection.ReDraw(graphics);
+                                            pictureBox1.Image = picture;
+
+                                            Thread.Sleep(sleepTime);
+                                        }
+                                    });
+                                    threadForPointer.Start();
+                                    break;
+                                }
+                            }
                         }
-                    });
+                        break;
 
-                    threadForShape.Start();
-                }
-                else {
-                    for (int i = collection.shapes.Count - 1; i >= 0; i--) {
-                        if (collection [i].Touch(currentPoint)) {
-                            collection [i].FillColor = color;
-                            break;
-                        }
-                    }
-                    collection.ReDraw(graphics);
-                    pictureBox1.Image = picture;
+                    default:
+                        shapeThreadIsRunning = true;
+
+                        collection.Add(new Rect(currentPoint, currentPoint, 0, Color.Black)); //заглушка
+
+                        threadForShape = new Thread(() =>
+                        {
+                            while (shapeThreadIsRunning) {
+                                PointF startPoint = new PointF();
+                                PointF endPoint = new PointF();
+
+                                collection.RemoveLastElement();
+
+                                startPoint.X = Math.Min(startMousePoint.X, currentPoint.X);
+                                startPoint.Y = Math.Min(startMousePoint.Y, currentPoint.Y);
+                                endPoint.X = startPoint.X + Math.Abs(currentPoint.X - startMousePoint.X);
+                                endPoint.Y = startPoint.Y + Math.Abs(currentPoint.Y - startMousePoint.Y);
+
+                                ShapeFactory shapeFactory = null;
+                                switch (module) {
+                                    case Module.rect:
+                                        shapeFactory = new RectFactory();
+                                        break;
+
+                                    case Module.circle:
+                                        shapeFactory = new CircleFactory();
+                                        break;
+
+                                    case Module.triangle:
+                                        shapeFactory = new TriangleFactory();
+                                        break;
+
+                                    case Module.revTriangle:
+                                        shapeFactory = new RevTriangleFactory();
+                                        break;
+                                }
+
+                                collection.Add(shapeFactory.CreateShape(startPoint, endPoint, borderSize, color));
+
+                                collection.ReDraw(graphics);
+                                pictureBox1.Image = picture;
+
+                                Thread.Sleep(sleepTime);
+                            }
+                        });
+
+                        threadForShape.Start();
+                        break;
                 }
             }
         }
 
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e) {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left) {
                 shapeThreadIsRunning = false;
+                typeOfTouch = Shape.TypeOfTouch.NePopal;
+                resizingIndex = -1;
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e) {
@@ -141,18 +200,21 @@ namespace MyPaint {
         private void buttonFill_Click(object sender, EventArgs e) {
             module = Module.vedro;
             ResetButtons();
+            ResetSelect();
             buttonFill.Enabled = false;
         }
 
         private void buttonDrawRectangle_Click(object sender, EventArgs e) {
             module = Module.rect;
             ResetButtons();
+            ResetSelect();
             buttonDrawRectangle.Enabled = false;
         }
 
         private void buttonDrawCircle_Click(object sender, EventArgs e) {
             module = Module.circle;
             ResetButtons();
+            ResetSelect();
             buttonDrawCircle.Enabled = false;
         }
 
@@ -167,7 +229,7 @@ namespace MyPaint {
         }
 
         private void serializeToolStripMenuItem_Click(object sender, EventArgs e) {
-                collection.Save();
+            collection.Save();
         }
 
         private void deserializeToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -184,12 +246,14 @@ namespace MyPaint {
         private void buttonDrawTriangle_Click_1(object sender, EventArgs e) {
             module = Module.triangle;
             ResetButtons();
+            ResetSelect();
             buttonDrawTriangle.Enabled = false;
         }
 
         private void buttonDrawRevTriangle_Click(object sender, EventArgs e) {
             module = Module.revTriangle;
             ResetButtons();
+            ResetSelect();
             buttonDrawRevTriangle.Enabled = false;
         }
 
@@ -204,10 +268,12 @@ namespace MyPaint {
         }
 
         private void FormMyPaint_SizeChanged(object sender, EventArgs e) {
-            picture = new Bitmap(pictureBox1.Width, pictureBox1.Height);
-            pictureBox1.Image = picture;
-            graphics = Graphics.FromImage(picture);
-            collection.ReDraw(graphics);
+            if (graphics != null) {
+                picture = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+                pictureBox1.Image = picture;
+                graphics = Graphics.FromImage(picture);
+                collection.ReDraw(graphics);
+            }
         }
 
         private void saveAsImageToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -235,6 +301,12 @@ namespace MyPaint {
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e) {
             Application.Exit();
+        }
+
+        private void buttonPointer_Click(object sender, EventArgs e) {
+            module = Module.pointer;
+            ResetButtons();
+            buttonPointer.Enabled = false;
         }
     }
 }
