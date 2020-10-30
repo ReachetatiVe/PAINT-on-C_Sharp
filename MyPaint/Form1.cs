@@ -27,7 +27,7 @@ namespace MyPaint {
         private Thread threadForShape;
         private Thread threadForPointer;
         private Shape.TypeOfTouch typeOfTouch;
-        int resizingIndex = -1;
+        private int resizingIndex = -1;
 
         private bool shapeThreadIsRunning = false;
         private byte borderSize;
@@ -185,12 +185,25 @@ namespace MyPaint {
         private void Form1_Load(object sender, EventArgs e) {
             Random rnd = new Random();
             collection = new Collection();
+            
+            new ToolTip().SetToolTip(buttonForUI, "Свернуть панель инструментов");
+            new ToolTip().SetToolTip(buttonFill, "Заливка фигур");
+            new ToolTip().SetToolTip(buttonPointer,"Выделение фигур");
+            new ToolTip().SetToolTip(buttonDrawCircle,"Рисует эллипс");
+            new ToolTip().SetToolTip(buttonDrawRectangle,"Рисует прямоугольник");
+            new ToolTip().SetToolTip(buttonDrawTriangle,"Рисует треугольник");
+            new ToolTip().SetToolTip(buttonDrawRevTriangle,"Рисует перевернутый треугольник");
+            new ToolTip().SetToolTip(panelColor,"Выберите цвет");
+            new ToolTip().SetToolTip(trackBarDepth,"Задать толщину границы");
 
             borderSize = (byte) trackBarDepth.Value;
 
             collection.bitmap = picture;
             color = Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256));
             panelColor.BackColor = color;
+
+            buttonForUI.Location = new Point(pictureBox1.Width / 2, pictureBox1.Location.Y);
+            
 
             threadForShowInfo = new Thread(() => ShowInfoAboutForm());
             threadForShowInfo.Start();
@@ -282,6 +295,7 @@ namespace MyPaint {
                 pictureBox1.Image = picture;
                 graphics = Graphics.FromImage(picture);
                 collection.ReDraw(graphics);
+                buttonForUI.Location = new Point(pictureBox1.Width / 2, pictureBox1.Location.Y);
             }
         }
 
@@ -318,6 +332,19 @@ namespace MyPaint {
             module = Module.pointer;
             ResetButtons();
             buttonPointer.Enabled = false;
+        }
+
+        private void buttonForUI_Click(object sender, EventArgs e) {
+            if (panel1.Visible) {
+                panel1.Visible = false;
+                buttonForUI.BackgroundImage=Image.FromFile(@"..\..\Images\expand-arrow.png");
+                
+            }
+            else {
+                panel1.Visible = true;
+                buttonForUI.BackgroundImage=Image.FromFile(@"..\..\Images\collapse-arrow.png");
+            }
+            buttonForUI.Location = new Point(pictureBox1.Width / 2, pictureBox1.Location.Y);
         }
     }
 }
