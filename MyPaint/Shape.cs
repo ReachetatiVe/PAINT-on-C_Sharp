@@ -14,7 +14,7 @@ namespace MyPaint {
         protected RectangleF selectRectangle;
         protected PointF [] points;
 
-        public Shape(int borderSize, Color borderColor) {
+        protected Shape(int borderSize, Color borderColor) {
             BorderSize = borderSize;
             BorderColor = borderColor;
         }

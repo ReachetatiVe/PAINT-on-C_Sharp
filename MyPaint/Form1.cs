@@ -5,7 +5,6 @@ using System.Threading;
 using System.Windows.Forms;
 
 namespace MyPaint {
-
     internal enum Module {
         rect,
         circle,
@@ -49,6 +48,7 @@ namespace MyPaint {
         private void ResetSelect() {
             collection.indexesOfSelectedShapes.Clear();
             collection.ReDraw(graphics);
+            pictureBox1.Image = picture;
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e) {
@@ -63,11 +63,12 @@ namespace MyPaint {
                 switch (module) {
                     case Module.vedro:
                         for (int i = collection.shapes.Count - 1; i >= 0; i--) {
-                            if (collection [i].Touch(currentPoint)) {
-                                collection [i].FillColor = color;
+                            if (collection[i].Touch(currentPoint)) {
+                                collection[i].FillColor = color;
                                 break;
                             }
                         }
+
                         collection.ReDraw(graphics);
                         pictureBox1.Image = picture;
                         break;
@@ -75,7 +76,8 @@ namespace MyPaint {
                     case Module.pointer:
                         for (int i = collection.shapes.Count - 1; i >= 0; i--) {
                             bool isSelected = false;
-                            foreach (int index in collection.indexesOfSelectedShapes) { //узнаем, помечена ли конкретная фигура
+                            foreach (int index in collection.indexesOfSelectedShapes) {
+                                //узнаем, помечена ли конкретная фигура
                                 if (index == i) {
                                     isSelected = true;
                                     break;
@@ -83,35 +85,37 @@ namespace MyPaint {
                             }
 
                             if (!isSelected) {
-                                if (collection [i].Touch(currentPoint)) {
+                                if (collection[i].Touch(currentPoint)) {
                                     collection.indexesOfSelectedShapes.Add(i);
                                     collection.ReDraw(graphics);
                                     pictureBox1.Image = picture;
                                 }
-
                             }
                             else {
-                                typeOfTouch = collection [i].CheckTouchSelectionBorder(startMousePoint);
+                                typeOfTouch = collection[i].CheckTouchSelectionBorder(startMousePoint);
                                 if (typeOfTouch != Shape.TypeOfTouch.NePopal) {
                                     resizingIndex = i;
                                     threadForPointer = new Thread(() =>
-                                    {
-                                        while (resizingIndex != -1) {
-                                            collection [resizingIndex].ReSize(typeOfTouch, new PointF(startMousePoint.X - currentPoint.X, startMousePoint.Y - currentPoint.Y));
+                                        {
+                                            while (resizingIndex != -1) {
+                                                collection[resizingIndex].ReSize(typeOfTouch,
+                                                    new PointF(startMousePoint.X - currentPoint.X,
+                                                        startMousePoint.Y - currentPoint.Y));
 
-                                            startMousePoint = currentPoint;
+                                                startMousePoint = currentPoint;
 
-                                            collection.ReDraw(graphics);
-                                            pictureBox1.Image = picture;
+                                                collection.ReDraw(graphics);
+                                                pictureBox1.Image = picture;
 
-                                            Thread.Sleep(sleepTime);
-                                        }
-                                    });
+                                                Thread.Sleep(sleepTime);
+                                            }
+                                        });
                                     threadForPointer.Start();
                                     break;
                                 }
                             }
                         }
+
                         break;
 
                     default:
@@ -120,49 +124,53 @@ namespace MyPaint {
                         collection.Add(new Rect(currentPoint, currentPoint, 0, Color.Black)); //заглушка
 
                         threadForShape = new Thread(() =>
-                        {
-                            while (shapeThreadIsRunning) {
-                                PointF startPoint = new PointF();
-                                PointF endPoint = new PointF();
+                            {
+                                while (shapeThreadIsRunning) {
+                                    PointF startPoint = new PointF();
+                                    PointF endPoint = new PointF();
 
-                                collection.RemoveLastElement();
+                                    collection.RemoveLastElement();
 
-                                startPoint.X = Math.Min(startMousePoint.X, currentPoint.X);
-                                startPoint.Y = Math.Min(startMousePoint.Y, currentPoint.Y);
-                                endPoint.X = startPoint.X + Math.Abs(currentPoint.X - startMousePoint.X);
-                                endPoint.Y = startPoint.Y + Math.Abs(currentPoint.Y - startMousePoint.Y);
+                                    startPoint.X = Math.Min(startMousePoint.X, currentPoint.X);
+                                    startPoint.Y = Math.Min(startMousePoint.Y, currentPoint.Y);
+                                    endPoint.X = startPoint.X + Math.Abs(currentPoint.X - startMousePoint.X);
+                                    endPoint.Y = startPoint.Y + Math.Abs(currentPoint.Y - startMousePoint.Y);
 
-                                ShapeFactory shapeFactory = null;
-                                switch (module) {
-                                    case Module.rect:
-                                        shapeFactory = new RectFactory();
-                                        break;
+                                    ShapeFactory shapeFactory = null;
+                                    switch (module) {
+                                        case Module.rect:
+                                            shapeFactory = new RectFactory();
+                                            break;
 
-                                    case Module.circle:
-                                        shapeFactory = new CircleFactory();
-                                        break;
+                                        case Module.circle:
+                                            shapeFactory = new CircleFactory();
+                                            break;
 
-                                    case Module.triangle:
-                                        shapeFactory = new TriangleFactory();
-                                        break;
+                                        case Module.triangle:
+                                            shapeFactory = new TriangleFactory();
+                                            break;
 
-                                    case Module.revTriangle:
-                                        shapeFactory = new RevTriangleFactory();
-                                        break;
+                                        case Module.revTriangle:
+                                            shapeFactory = new RevTriangleFactory();
+                                            break;
+                                    }
+
+                                    collection.Add(shapeFactory.CreateShape(startPoint, endPoint, borderSize, color));
+
+                                    collection.ReDraw(graphics);
+                                    pictureBox1.Image = picture;
+
+                                    Thread.Sleep(sleepTime);
                                 }
-
-                                collection.Add(shapeFactory.CreateShape(startPoint, endPoint, borderSize, color));
-
-                                collection.ReDraw(graphics);
-                                pictureBox1.Image = picture;
-
-                                Thread.Sleep(sleepTime);
-                            }
-                        });
+                            });
 
                         threadForShape.Start();
                         break;
                 }
+            }
+
+            if (e.Button == MouseButtons.Right) {
+                ResetSelect();
             }
         }
 
@@ -178,7 +186,7 @@ namespace MyPaint {
             Random rnd = new Random();
             collection = new Collection();
 
-            borderSize = (byte)trackBarDepth.Value;
+            borderSize = (byte) trackBarDepth.Value;
 
             collection.bitmap = picture;
             color = Color.FromArgb(rnd.Next(0, 256), rnd.Next(0, 256), rnd.Next(0, 256));
@@ -189,11 +197,11 @@ namespace MyPaint {
         }
 
         private void ShowInfoAboutForm() {
-            while (!false) {
+            while (true) {
                 toolStripStatusLabelShowCountOfShapes.Text = collection.shapes.Count.ToString();
                 toolStripStatusLabelShowX.Text = "X: " + currentPoint.X;
                 toolStripStatusLabelShowY.Text = "Y: " + currentPoint.Y;
-                Thread.Sleep(17);
+                Thread.Sleep(sleepTime);
             }
         }
 
@@ -225,7 +233,8 @@ namespace MyPaint {
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e) {
-            MessageBox.Show("Программа Paint для сдачи проекта \"Paint\" в университете. Больше ни для чего.", "About program");
+            MessageBox.Show("Программа Paint для сдачи проекта \"Paint\" в университете. Больше ни для чего.",
+                "About program");
         }
 
         private void serializeToolStripMenuItem_Click(object sender, EventArgs e) {
@@ -258,7 +267,7 @@ namespace MyPaint {
         }
 
         private void trackBarDepth_ValueChanged(object sender, EventArgs e) {
-            borderSize = (byte)trackBarDepth.Value;
+            borderSize = (byte) trackBarDepth.Value;
         }
 
         private void FormMyPaint_FormClosed(object sender, FormClosedEventArgs e) {
@@ -278,12 +287,14 @@ namespace MyPaint {
 
         private void saveAsImageToolStripMenuItem_Click(object sender, EventArgs e) {
             if (pictureBox1.Image != null) {
-                SaveFileDialog savedialog = new SaveFileDialog
-                {
+                SaveFileDialog savedialog = new SaveFileDialog {
                     Title = "Сохранить изображение как...",
-                    OverwritePrompt = true, //отображать ли предупреждение, если пользователь указывает имя уже существующего файла
-                    CheckPathExists = true, //отображать ли предупреждение, если пользователь указывает несуществующий путь
-                    Filter = "Image Files(*.BMP)|*.BMP|Image Files(*.JPG)|*.JPG|Image Files(*.GIF)|*.GIF|Image Files(*.PNG)|*.PNG|All files (*.*)|*.*" //список форматов файла, отображаемый в поле "Тип файла"
+                    OverwritePrompt =
+                        true, //отображать ли предупреждение, если пользователь указывает имя уже существующего файла
+                    CheckPathExists =
+                        true, //отображать ли предупреждение, если пользователь указывает несуществующий путь
+                    Filter =
+                        "Image Files(*.BMP)|*.BMP|Image Files(*.JPG)|*.JPG|Image Files(*.GIF)|*.GIF|Image Files(*.PNG)|*.PNG|All files (*.*)|*.*" //список форматов файла, отображаемый в поле "Тип файла"
                 };
 
                 if (savedialog.ShowDialog() == DialogResult.OK) //если в диалоговом окне нажата кнопка "ОК"
@@ -293,7 +304,7 @@ namespace MyPaint {
                     }
                     catch {
                         MessageBox.Show("Невозможно сохранить изображение", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
