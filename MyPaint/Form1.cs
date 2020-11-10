@@ -6,12 +6,12 @@ using System.Windows.Forms;
 
 namespace MyPaint {
     internal enum Module {
-        rect,
-        circle,
-        triangle,
-        revTriangle,
-        vedro,
-        pointer
+        Rect,
+        Circle,
+        Triangle,
+        RevTriangle,
+        Vedro,
+        Pointer
     }
 
     public partial class FormMyPaint : Form {
@@ -32,6 +32,8 @@ namespace MyPaint {
         private bool shapeThreadIsRunning = false;
         private byte borderSize;
         private const byte sleepTime = 16;
+
+        private uint countOfGroupShapes;
 
         public FormMyPaint() {
             InitializeComponent();
@@ -58,10 +60,10 @@ namespace MyPaint {
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e) {
             if (e.Button == MouseButtons.Left) {
                 startMousePoint = e.Location;
-                currentPoint = e.Location;
+                //currentPoint = e.Location;
 
                 switch (module) {
-                    case Module.vedro:
+                    case Module.Vedro:
                         for (int i = collection.shapes.Count - 1; i >= 0; i--) {
                             if (collection[i].Touch(currentPoint)) {
                                 collection[i].FillColor = color;
@@ -73,7 +75,7 @@ namespace MyPaint {
                         pictureBox1.Image = picture;
                         break;
 
-                    case Module.pointer:
+                    case Module.Pointer:
                         for (int i = collection.shapes.Count - 1; i >= 0; i--) {
                             bool isSelected = false;
                             foreach (int index in collection.indexesOfSelectedShapes) {
@@ -84,8 +86,9 @@ namespace MyPaint {
                                 }
                             }
 
+                            bool touched = collection[i].Touch(currentPoint);
                             if (!isSelected) {
-                                if (collection[i].Touch(currentPoint)) {
+                                if (touched) {
                                     collection.indexesOfSelectedShapes.Add(i);
                                     collection.ReDraw(graphics);
                                     pictureBox1.Image = picture;
@@ -99,6 +102,27 @@ namespace MyPaint {
                                         {
                                             while (resizingIndex != -1) {
                                                 collection[resizingIndex].ReSize(typeOfTouch,
+                                                    new PointF(startMousePoint.X - currentPoint.X,
+                                                        startMousePoint.Y - currentPoint.Y));
+
+                                                startMousePoint = currentPoint;
+
+                                                collection.ReDraw(graphics);
+                                                pictureBox1.Image = picture;
+
+                                                Thread.Sleep(sleepTime);
+                                            }
+                                        });
+                                    threadForPointer.Start();
+                                    break;
+                                }
+
+                                if (touched) {
+                                    resizingIndex = i;
+                                    threadForPointer = new Thread(() =>
+                                        {
+                                            while (resizingIndex != -1) {
+                                                collection[resizingIndex].Move(
                                                     new PointF(startMousePoint.X - currentPoint.X,
                                                         startMousePoint.Y - currentPoint.Y));
 
@@ -138,19 +162,19 @@ namespace MyPaint {
 
                                     ShapeFactory shapeFactory = null;
                                     switch (module) {
-                                        case Module.rect:
+                                        case Module.Rect:
                                             shapeFactory = new RectFactory();
                                             break;
 
-                                        case Module.circle:
+                                        case Module.Circle:
                                             shapeFactory = new CircleFactory();
                                             break;
 
-                                        case Module.triangle:
+                                        case Module.Triangle:
                                             shapeFactory = new TriangleFactory();
                                             break;
 
-                                        case Module.revTriangle:
+                                        case Module.RevTriangle:
                                             shapeFactory = new RevTriangleFactory();
                                             break;
                                     }
@@ -185,16 +209,16 @@ namespace MyPaint {
         private void Form1_Load(object sender, EventArgs e) {
             Random rnd = new Random();
             collection = new Collection();
-            
+
             new ToolTip().SetToolTip(buttonForUI, "Свернуть панель инструментов");
             new ToolTip().SetToolTip(buttonFill, "Заливка фигур");
-            new ToolTip().SetToolTip(buttonPointer,"Выделение фигур");
-            new ToolTip().SetToolTip(buttonDrawCircle,"Рисует эллипс");
-            new ToolTip().SetToolTip(buttonDrawRectangle,"Рисует прямоугольник");
-            new ToolTip().SetToolTip(buttonDrawTriangle,"Рисует треугольник");
-            new ToolTip().SetToolTip(buttonDrawRevTriangle,"Рисует перевернутый треугольник");
-            new ToolTip().SetToolTip(panelColor,"Выберите цвет");
-            new ToolTip().SetToolTip(trackBarDepth,"Задать толщину границы");
+            new ToolTip().SetToolTip(buttonPointer, "Выделение фигур");
+            new ToolTip().SetToolTip(buttonDrawCircle, "Рисует эллипс");
+            new ToolTip().SetToolTip(buttonDrawRectangle, "Рисует прямоугольник");
+            new ToolTip().SetToolTip(buttonDrawTriangle, "Рисует треугольник");
+            new ToolTip().SetToolTip(buttonDrawRevTriangle, "Рисует перевернутый треугольник");
+            new ToolTip().SetToolTip(panelColor, "Выберите цвет");
+            new ToolTip().SetToolTip(trackBarDepth, "Задать толщину границы");
 
             borderSize = (byte) trackBarDepth.Value;
 
@@ -203,7 +227,7 @@ namespace MyPaint {
             panelColor.BackColor = color;
 
             buttonForUI.Location = new Point(pictureBox1.Width / 2, pictureBox1.Location.Y);
-            
+
 
             threadForShowInfo = new Thread(() => ShowInfoAboutForm());
             threadForShowInfo.Start();
@@ -219,21 +243,21 @@ namespace MyPaint {
         }
 
         private void buttonFill_Click(object sender, EventArgs e) {
-            module = Module.vedro;
+            module = Module.Vedro;
             ResetButtons();
             ResetSelect();
             buttonFill.Enabled = false;
         }
 
         private void buttonDrawRectangle_Click(object sender, EventArgs e) {
-            module = Module.rect;
+            module = Module.Rect;
             ResetButtons();
             ResetSelect();
             buttonDrawRectangle.Enabled = false;
         }
 
         private void buttonDrawCircle_Click(object sender, EventArgs e) {
-            module = Module.circle;
+            module = Module.Circle;
             ResetButtons();
             ResetSelect();
             buttonDrawCircle.Enabled = false;
@@ -266,14 +290,14 @@ namespace MyPaint {
         }
 
         private void buttonDrawTriangle_Click_1(object sender, EventArgs e) {
-            module = Module.triangle;
+            module = Module.Triangle;
             ResetButtons();
             ResetSelect();
             buttonDrawTriangle.Enabled = false;
         }
 
         private void buttonDrawRevTriangle_Click(object sender, EventArgs e) {
-            module = Module.revTriangle;
+            module = Module.RevTriangle;
             ResetButtons();
             ResetSelect();
             buttonDrawRevTriangle.Enabled = false;
@@ -317,8 +341,8 @@ namespace MyPaint {
                         picture.Save(savedialog.FileName, System.Drawing.Imaging.ImageFormat.Jpeg);
                     }
                     catch {
-                        MessageBox.Show("Невозможно сохранить изображение", "Ошибка",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Невозможно сохранить изображение", "Ошибка", MessageBoxButtons.OK,
+                            MessageBoxIcon.Error);
                     }
                 }
             }
@@ -329,7 +353,7 @@ namespace MyPaint {
         }
 
         private void buttonPointer_Click(object sender, EventArgs e) {
-            module = Module.pointer;
+            module = Module.Pointer;
             ResetButtons();
             buttonPointer.Enabled = false;
         }
@@ -337,14 +361,19 @@ namespace MyPaint {
         private void buttonForUI_Click(object sender, EventArgs e) {
             if (panel1.Visible) {
                 panel1.Visible = false;
-                buttonForUI.BackgroundImage=Image.FromFile(@"..\..\Images\expand-arrow.png");
-                
+                buttonForUI.BackgroundImage = Image.FromFile(@"..\..\Images\expand-arrow.png");
             }
             else {
                 panel1.Visible = true;
-                buttonForUI.BackgroundImage=Image.FromFile(@"..\..\Images\collapse-arrow.png");
+                buttonForUI.BackgroundImage = Image.FromFile(@"..\..\Images\collapse-arrow.png");
             }
+
             buttonForUI.Location = new Point(pictureBox1.Width / 2, pictureBox1.Location.Y);
+        }
+
+        private void buttonAddGroupShape_Click(object sender, EventArgs e) {
+            countOfGroupShapes++;
+            comboBoxForGroupShape.Items.Add(new Label().Text="Г.Фигура "+countOfGroupShapes);
         }
     }
 }
